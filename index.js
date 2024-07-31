@@ -1,7 +1,7 @@
 const TelegramBot = require('node-telegram-bot-api');
+const cron = require('node-cron');
 const express = require('express');
 const bodyParser = require('body-parser');
-const cron = require('node-cron');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -21,35 +21,37 @@ if (!token || !chatId || !url) {
     process.exit(1);
 }
 
-const bot = new TelegramBot(token);
-bot.setWebHook(`${url}/bot${token}`);
+const bot = new TelegramBot(token, { polling: true });
 
-app.use(bodyParser.json());
-
-app.post(`/bot${token}`, (req, res) => {
-  bot.processUpdate(req.body);
-  res.sendStatus(200);
-});
-
-app.get('/', (req, res) => {
-  res.status(200).send('Telegram Schedule Bot активен и работает!');
-});
-
+// Функция для разрешения отправки сообщений
 function enableChat() {
     bot.setChatPermissions(chatId, { can_send_messages: true })
         .then(() => console.log("Чат разрешен для отправки сообщений."))
         .catch((error) => console.error("Ошибка при разрешении чата:", error));
 }
 
+// Функция для запрета отправки сообщений
 function disableChat() {
     bot.setChatPermissions(chatId, { can_send_messages: false })
         .then(() => console.log("Чат запрещен для отправки сообщений."))
         .catch((error) => console.error("Ошибка при запрете чата:", error));
 }
 
+// Настройка cron-задач для управления чатом
 cron.schedule('0 9 * * 1-5', enableChat);
 cron.schedule('0 18 * * 1-5', disableChat);
 
+// Настройка сервера для приема запросов от Telegram
+app.use(bodyParser.json());
+app.post(`/bot${token}`, (req, res) => {
+    bot.processUpdate(req.body);
+    res.sendStatus(200);
+});
+
+app.get('/', (req, res) => {
+    res.send('Telegram Schedule Bot активен и работает!');
+});
+
 app.listen(port, () => {
-  console.log(`Сервер запущен на порту ${port}. Управление доступом к чату активировано.`);
+    console.log(`Сервер запущен на порту ${port}. Управление доступом к чату активировано.`);
 });
