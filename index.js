@@ -11,16 +11,6 @@ const token = process.env.TELEGRAM_BOT_TOKEN;
 const chatId = process.env.TELEGRAM_GROUP_CHAT_ID;
 const url = process.env.VERCEL_URL;
 
-// Вывод значений переменных в консоль для проверки
-console.log("TELEGRAM_BOT_TOKEN:", token);
-console.log("TELEGRAM_GROUP_CHAT_ID:", chatId);
-console.log("VERCEL_URL:", url);
-
-if (!token || !chatId || !url) {
-    console.error('Отсутствуют необходимые переменные окружения: TELEGRAM_BOT_TOKEN, TELEGRAM_GROUP_CHAT_ID, VERCEL_URL');
-    process.exit(1);
-}
-
 const bot = new TelegramBot(token, { polling: true });
 
 // Функция для разрешения отправки сообщений
@@ -48,8 +38,12 @@ app.post(`/bot${token}`, (req, res) => {
     res.sendStatus(200);
 });
 
+// Вывод токена, chatId и URL на страницу
 app.get('/', (req, res) => {
-    res.send('Telegram Schedule Bot активен и работает!');
+    res.send(`Telegram Schedule Bot активен и работает!<br>
+              TOKEN: ${token}<br>
+              CHAT ID: ${chatId}<br>
+              URL: ${url}`);
 });
 
 app.listen(port, () => {
