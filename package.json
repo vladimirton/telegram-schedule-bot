@@ -1,12 +1,13 @@
 {
   "name": "telegram-schedule-bot",
   "version": "1.0.0",
-  "description": "",
+  "description": "Telegram bot to manage messaging permissions in a group based on a schedule using node-cron and node-telegram-bot-api.",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
+  "keywords": ["telegram", "bot", "cron", "schedule"],
   "author": "",
   "license": "ISC",
   "dependencies": {

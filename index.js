@@ -1,9 +1,14 @@
 const TelegramBot = require('node-telegram-bot-api');
 const cron = require('node-cron');
 
-// Получение значений переменных окружения
+// Загрузка переменных окружения
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const chatId = process.env.TELEGRAM_GROUP_CHAT_ID;
+
+if (!token || !chatId) {
+    console.error('Отсутствуют необходимые переменные окружения: TELEGRAM_BOT_TOKEN и TELEGRAM_GROUP_CHAT_ID');
+    process.exit(1);
+}
 
 const bot = new TelegramBot(token, { polling: true });
 
@@ -21,12 +26,8 @@ function disableChat() {
         .catch((error) => console.error("Ошибка деактивации чата:", error));
 }
 
-// Запланировать задачи
-// Разрешение отправки сообщений каждый будний день с 9:00
-cron.schedule('0 9 * * 1-5', enableChat);
-// Запрет отправки сообщений каждый будний день в 18:00
-cron.schedule('0 18 * * 1-5', disableChat);
+// Настройка cron-задач для управления чатом
+cron.schedule('0 9 * * 1-5', enableChat); // Разрешение отправки с 9:00 каждый будний день
+cron.schedule('0 18 * * 1-5', disableChat); // Запрет отправки в 18:00 каждый будний день
 
-// Вывод переменных в консоль для тестирования
-console.log("Токен бота:", token);
-console.log("ID чата:", chatId);
+console.log("Бот запущен. Управление чатом активировано.");
