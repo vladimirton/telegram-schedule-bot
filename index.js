@@ -11,7 +11,7 @@ let currentChatStatus = 'Неизвестно';
 
 const openTime = process.env.OPEN_TIME || '09:15';  // время открытия чата
 const closeTime = process.env.CLOSE_TIME || '18:45'; // время закрытия чата
-const activeDays = (process.env.ACTIVE_DAYS || '1,2,3,4,5').split(','); // дни недели, когда чат активен
+const activeDays = (process.env.ACTIVE_DAYS || '1,2,3,7').split(','); // дни недели, когда чат активен
 
 const permissions = {
   active: {
@@ -62,19 +62,11 @@ async function setChatPermissions(status) {
 }
 
 function getMoscowTime() {
-  return moment().tz("Europe/Moscow");
-}
-
-function checkAndSetInitialPermissions() {
-  const moscowTime = getMoscowTime();
-  const currentHour = moscowTime.format('HH:mm');
-  const day = moscowTime.day().toString();
-  if (activeDays.includes(day)) {
-    const isOpen = currentHour >= openTime && currentHour < closeTime;
-    setChatPermissions(isOpen ? 'Включен' : 'Выключен');
-  } else {
-    setChatPermissions('Выключен');
-  }
+  const moscowMoment = moment().tz("Europe/Moscow");
+  return {
+    dateTime: moscowMoment.format('L, LTS'),
+    weekDay: dayOfWeek(moscowMoment.day().toString())
+  };
 }
 
 function dayOfWeek(dayNumber) {
@@ -90,9 +82,21 @@ function dayOfWeek(dayNumber) {
   return days[dayNumber] || 'Неизвестный день';
 }
 
+function checkAndSetInitialPermissions() {
+  const moscowTime = getMoscowTime();
+  const currentHour = moscowTime.dateTime;
+  const day = moscowTime.weekDay;
+  if (activeDays.includes(day)) {
+    const isOpen = currentHour >= openTime && currentHour < closeTime;
+    setChatPermissions(isOpen ? 'Включен' : 'Выключен');
+  } else {
+    setChatPermissions('Выключен');
+  }
+}
+
 app.get('/', (req, res) => {
   const moscowTime = getMoscowTime();
-  res.send(`Current date and time in Moscow: ${moscowTime.format('L, LTS')}<br>
+  res.send(`Current date and time in Moscow: ${moscowTime.weekDay}, ${moscowTime.dateTime}<br>
             Current chat status: ${currentChatStatus}<br>
             Open time: ${openTime}<br>
             Close time: ${closeTime}<br>
