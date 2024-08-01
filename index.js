@@ -1,6 +1,7 @@
 const axios = require('axios');
 const cron = require('node-cron');
 const express = require('express');
+const moment = require('moment-timezone');
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -57,20 +58,20 @@ async function setChatPermissions(status) {
 }
 
 function getMoscowTime() {
-  return new Date(new Date().getTime() + (new Date().getTimezoneOffset() * 60000) + (3 * 3600000)); // Moscow UTC+3
+  return moment().tz("Europe/Moscow");
 }
 
 function checkAndSetInitialPermissions() {
   const moscowTime = getMoscowTime();
-  const hour = moscowTime.getHours();
-  const day = moscowTime.getDay();
+  const hour = moscowTime.hour();
+  const day = moscowTime.day();
   const status = day >= 1 && day <= 5 && hour >= 9 && hour < 18 ? 'Включен' : 'Выключен';
   setChatPermissions(status);
 }
 
 app.get('/', (req, res) => {
   const moscowTime = getMoscowTime();
-  res.send(`Current date and time (Moscow): ${moscowTime.toLocaleString('en-US', { timeZone: 'Europe/Moscow' })}<br>Current chat status: ${currentChatStatus}`);
+  res.send(`Current date and time (Moscow): ${moscowTime.format('L, LTS')}<br>Current chat status: ${currentChatStatus}`);
 });
 
 cron.schedule('0 9 * * 1-5', () => setChatPermissions('Включен'), { timezone: 'Europe/Moscow' });
