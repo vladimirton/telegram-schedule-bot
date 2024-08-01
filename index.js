@@ -1,3 +1,4 @@
+require('dotenv').config();
 const axios = require('axios');
 const cron = require('node-cron');
 const express = require('express');
@@ -7,8 +8,10 @@ const port = process.env.PORT || 3000;
 const botToken = process.env.BOT_TOKEN;
 const chatId = process.env.CHAT_ID;
 
-// Функция для установки прав доступа
-async function setChatPermissions(permissions) {
+// Переменная для отслеживания текущего состояния чата
+let currentChatStatus = 'Неизвестно';
+
+async function setChatPermissions(permissions, statusDescription) {
   const url = `https://api.telegram.org/bot${botToken}/setChatPermissions`;
   const params = {
     chat_id: chatId,
@@ -18,12 +21,12 @@ async function setChatPermissions(permissions) {
   try {
     const response = await axios.post(url, params);
     console.log('Permissions update response:', response.data);
+    currentChatStatus = statusDescription; // Обновление текущего состояния чата
   } catch (error) {
     console.error('Error in setting chat permissions:', error.response ? error.response.data : error.message);
   }
 }
 
-// Права доступа для активного и неактивного состояний
 const activePermissions = {
   can_send_messages: true,
   can_send_media_messages: true,
@@ -60,30 +63,30 @@ const inactivePermissions = {
   can_manage_topics: false
 };
 
-// Проверка и установка начальных прав доступа в зависимости от текущего времени
 function checkAndSetInitialPermissions() {
   const now = new Date();
   const hour = now.getHours();
   const day = now.getDay();
 
   if (day >= 1 && day <= 5 && hour >= 9 && hour < 18) {
-    setChatPermissions(activePermissions);
+    setChatPermissions(activePermissions, 'Включен');
   } else {
-    setChatPermissions(inactivePermissions);
+    setChatPermissions(inactivePermissions, 'Выключен');
   }
 }
 
-// Веб-сервер для отображения текущего времени
 app.get('/', (req, res) => {
   const now = new Date();
-  res.send(`Current time: ${now.toLocaleTimeString('en-US', { timeZone: 'Europe/Moscow' })}`);
+  res.send(`
+    Current date and time: ${now.toLocaleString('en-US', { timeZone: 'Europe/Moscow' })}<br>
+    Current chat status: ${currentChatStatus}
+  `);
 });
 
-// Настройка cron задач
-cron.schedule('0 9 * * 1-5', () => setChatPermissions(activePermissions), {
+cron.schedule('0 9 * * 1-5', () => setChatPermissions(activePermissions, 'Включен'), {
   timezone: 'Europe/Moscow'
 });
-cron.schedule('0 18 * * 1-5', () => setChatPermissions(inactivePermissions), {
+cron.schedule('0 18 * * 1-5', () => setChatPermissions(inactivePermissions, 'Выключен'), {
   timezone: 'Europe/Moscow'
 });
 
