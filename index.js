@@ -64,8 +64,8 @@ async function setChatPermissions(status) {
 function getMoscowTime() {
   const moscowMoment = moment().tz("Europe/Moscow");
   return {
-    dateTime: moscowMoment.format('L, LTS'),
-    weekDay: dayOfWeek(moscowMoment.day().toString())
+    dateTime: moscowMoment.format('HH:mm'),
+    weekDay: moscowMoment.format('d')  // 0 for Sunday, 6 for Saturday
   };
 }
 
@@ -77,7 +77,7 @@ function dayOfWeek(dayNumber) {
     '4': 'Четверг',
     '5': 'Пятница',
     '6': 'Суббота',
-    '7': 'Воскресенье'
+    '0': 'Воскресенье'
   };
   return days[dayNumber] || 'Неизвестный день';
 }
@@ -96,7 +96,7 @@ function checkAndSetInitialPermissions() {
 
 app.get('/', (req, res) => {
   const moscowTime = getMoscowTime();
-  res.send(`Current date and time in Moscow: ${moscowTime.weekDay}, ${moscowTime.dateTime}<br>
+  res.send(`Current date and time in Moscow: ${dayOfWeek(moscowTime.weekDay)}, ${moscowTime.dateTime}<br>
             Current chat status: ${currentChatStatus}<br>
             Open time: ${openTime}<br>
             Close time: ${closeTime}<br>
