@@ -11,7 +11,7 @@ let currentChatStatus = 'Неизвестно';
 
 const openTime = process.env.OPEN_TIME || '09:15';  // время открытия чата
 const closeTime = process.env.CLOSE_TIME || '18:45'; // время закрытия чата
-const activeDays = (process.env.ACTIVE_DAYS || '1,2,3,7').split(','); // дни недели, когда чат активен
+const activeDays = (process.env.ACTIVE_DAYS || '1,2,3,4,5').split(','); // дни недели, когда чат активен
 
 const permissions = {
   active: {
