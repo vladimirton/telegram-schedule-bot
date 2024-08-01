@@ -16,8 +16,8 @@ async function setChatPermissions(botToken, chatId, permissions) {
   }
 }
 
-const botToken = '7219473862:AAGz1M9qWzdD04Ffh6LhC-IW2aJ8G_QHbcM'; // Токен вашего бота
-const chatId = '-1002073752438'; // ID вашего чата
+const botToken = ''; // Токен вашего бота
+const chatId = ''; // ID вашего чата
 
 // Параметры разрешений, которые вы хотите установить
 const permissions = {
