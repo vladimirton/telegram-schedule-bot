@@ -9,6 +9,10 @@ const botToken = process.env.BOT_TOKEN;
 const chatId = process.env.CHAT_ID;
 let currentChatStatus = 'Неизвестно';
 
+const openTime = process.env.OPEN_TIME || '09:15';  // время открытия чата
+const closeTime = process.env.CLOSE_TIME || '18:45'; // время закрытия чата
+const activeDays = (process.env.ACTIVE_DAYS || '1,2,3,7').split(','); // дни недели, когда чат активен
+
 const permissions = {
   active: {
     can_send_messages: true,
@@ -63,19 +67,45 @@ function getMoscowTime() {
 
 function checkAndSetInitialPermissions() {
   const moscowTime = getMoscowTime();
-  const hour = moscowTime.hour();
-  const day = moscowTime.day();
-  const status = day >= 1 && day <= 5 && hour >= 9 && hour < 18 ? 'Включен' : 'Выключен';
-  setChatPermissions(status);
+  const currentHour = moscowTime.format('HH:mm');
+  const day = moscowTime.day().toString();
+  if (activeDays.includes(day)) {
+    const isOpen = currentHour >= openTime && currentHour < closeTime;
+    setChatPermissions(isOpen ? 'Включен' : 'Выключен');
+  } else {
+    setChatPermissions('Выключен');
+  }
+}
+
+function dayOfWeek(dayNumber) {
+  const days = {
+    '1': 'Понедельник',
+    '2': 'Вторник',
+    '3': 'Среда',
+    '4': 'Четверг',
+    '5': 'Пятница',
+    '6': 'Суббота',
+    '7': 'Воскресенье'
+  };
+  return days[dayNumber] || 'Неизвестный день';
 }
 
 app.get('/', (req, res) => {
   const moscowTime = getMoscowTime();
-  res.send(`Current date and time (Moscow): ${moscowTime.format('L, LTS')}<br>Current chat status: ${currentChatStatus}`);
+  res.send(`Current date and time in Moscow: ${moscowTime.format('L, LTS')}<br>
+            Current chat status: ${currentChatStatus}<br>
+            Open time: ${openTime}<br>
+            Close time: ${closeTime}<br>
+            Active days: ${activeDays.map(day => dayOfWeek(day)).join(', ')}`);
 });
 
-cron.schedule('0 9 * * 1-5', () => setChatPermissions('Включен'), { timezone: 'Europe/Moscow' });
-cron.schedule('0 18 * * 1-5', () => setChatPermissions('Выключен'), { timezone: 'Europe/Moscow' });
+cron.schedule(`${openTime.split(':')[1]} ${openTime.split(':')[0]} * * ${activeDays.join(',')}`, () => {
+  setChatPermissions('Включен');
+}, { timezone: 'Europe/Moscow' });
+
+cron.schedule(`${closeTime.split(':')[1]} ${closeTime.split(':')[0]} * * ${activeDays.join(',')}`, () => {
+  setChatPermissions('Выключен');
+}, { timezone: 'Europe/Moscow' });
 
 checkAndSetInitialPermissions();
 
