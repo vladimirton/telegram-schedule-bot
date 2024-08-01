@@ -64,11 +64,11 @@ const inactivePermissions = {
 
 function checkAndSetInitialPermissions() {
   const now = new Date();
-  const hour = now.getHours();
-  const day = now.getDay();
-
   // Adjust to 'Europe/Moscow' timezone if the server is not in that timezone
-  now.setHours(now.getHours() + (now.getTimezoneOffset() / 60) + 3); // Moscow UTC+3
+  const moscowTime = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + (3 * 3600000)); // Moscow UTC+3
+
+  const hour = moscowTime.getHours();
+  const day = moscowTime.getDay();
 
   if (day >= 1 && day <= 5 && hour >= 9 && hour < 18) {
     setChatPermissions(activePermissions, 'Включен');
@@ -85,10 +85,16 @@ app.get('/', (req, res) => {
   `);
 });
 
-cron.schedule('0 9 * * 1-5', () => setChatPermissions(activePermissions, 'Включен'), {
+cron.schedule('0 9 * * 1-5', () => {
+  console.log("Activating chat permissions for working hours.");
+  setChatPermissions(activePermissions, 'Включен')
+}, {
   timezone: 'Europe/Moscow'
 });
-cron.schedule('0 18 * * 1-5', () => setChatPermissions(inactivePermissions, 'Выключен'), {
+cron.schedule('0 18 * * 1-5', () => {
+  console.log("Deactivating chat permissions after working hours.");
+  setChatPermissions(inactivePermissions, 'Выключен')
+}, {
   timezone: 'Europe/Moscow'
 });
 
