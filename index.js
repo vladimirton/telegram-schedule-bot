@@ -67,6 +67,9 @@ function checkAndSetInitialPermissions() {
   const hour = now.getHours();
   const day = now.getDay();
 
+  // Adjust to 'Europe/Moscow' timezone if the server is not in that timezone
+  now.setHours(now.getHours() + (now.getTimezoneOffset() / 60) + 3); // Moscow UTC+3
+
   if (day >= 1 && day <= 5 && hour >= 9 && hour < 18) {
     setChatPermissions(activePermissions, 'Включен');
   } else {
