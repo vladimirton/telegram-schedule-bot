@@ -9,7 +9,7 @@ const botToken = process.env.BOT_TOKEN;
 const chatId = process.env.CHAT_ID;
 let currentChatStatus = 'Неизвестно';
 
-const openTime = process.env.OPEN_TIME || '10:04';  // время открытия чата
+const openTime = process.env.OPEN_TIME || '11:15';  // время открытия чата
 const closeTime = process.env.CLOSE_TIME || '18:45'; // время закрытия чата
 const activeDays = (process.env.ACTIVE_DAYS || '1,2,3,4,5').split(','); // дни недели, когда чат активен
 
