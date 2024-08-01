@@ -9,7 +9,7 @@ const botToken = process.env.BOT_TOKEN;
 const chatId = process.env.CHAT_ID;
 let currentChatStatus = 'Неизвестно';
 
-const openTime = process.env.OPEN_TIME || '10:18';  // время открытия чата
+const openTime = process.env.OPEN_TIME || '10:04';  // время открытия чата
 const closeTime = process.env.CLOSE_TIME || '18:45'; // время закрытия чата
 const activeDays = (process.env.ACTIVE_DAYS || '1,2,3,4,5').split(','); // дни недели, когда чат активен
 
@@ -54,7 +54,8 @@ async function setChatPermissions(status) {
   const perms = status === 'Включен' ? permissions.active : permissions.inactive;
   const url = `https://api.telegram.org/bot${botToken}/setChatPermissions`;
   try {
-    await axios.post(url, { chat_id: chatId, permissions: perms });
+    const response = await axios.post(url, { chat_id: chatId, permissions: perms });
+    console.log('Permissions set successfully:', response.data);
     currentChatStatus = status;
   } catch (error) {
     console.error('Error in setting chat permissions:', error.response ? error.response.data : error.message);
@@ -104,10 +105,12 @@ app.get('/', (req, res) => {
 });
 
 cron.schedule(`${openTime.split(':')[1]} ${openTime.split(':')[0]} * * ${activeDays.join(',')}`, () => {
+  console.log('Cron job triggered to enable chat permissions');
   setChatPermissions('Включен');
 }, { timezone: 'Europe/Moscow' });
 
 cron.schedule(`${closeTime.split(':')[1]} ${closeTime.split(':')[0]} * * ${activeDays.join(',')}`, () => {
+  console.log('Cron job triggered to disable chat permissions');
   setChatPermissions('Выключен');
 }, { timezone: 'Europe/Moscow' });
 
